@@ -2,10 +2,31 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 )
+
+var (
+	certKeyFileName = "cert/cert.key"
+	certPemFileName = "cert/cert.pem"
+	certKey         []byte
+	certPem         []byte
+)
+
+func init() {
+	var err error
+	certKey, err = ioutil.ReadFile(certKeyFileName)
+	if err != nil {
+		log.Fatal("Failed to load %s", certKeyFileName)
+	}
+	certPem, err = ioutil.ReadFile(certPemFileName)
+	if err != nil {
+		log.Fatal("Failed to load %s", certPemFileName)
+	}
+	log.Printf("initialized")
+}
 
 func main() {
 	http.HandleFunc("/", indexHandler)
