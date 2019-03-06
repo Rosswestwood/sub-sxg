@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/pem"
 	"errors"
 	"io"
 	"net/http"
@@ -33,17 +32,15 @@ const defaultPayload = `<!DOCTYPE html>
 `
 
 type exchangeParams struct {
-	ver           version.Version
-	contentUrl    string
-	certUrl       string
-	validityUrl   string
-	pemCerts      []byte
-	pemPrivateKey []byte
-	contentType   string
-	resHeader     http.Header
-	payload       []byte
-	date          time.Time
-	rand          io.Reader
+	ver         version.Version
+	contentUrl  string
+	certUrl     string
+	validityUrl string
+	contentType string
+	resHeader   http.Header
+	payload     []byte
+	date        time.Time
+	rand        io.Reader
 }
 
 type zeroReader struct{}
@@ -58,24 +55,6 @@ func (zeroReader) Read(b []byte) (int, error) {
 func createExchange(params *exchangeParams) (*signedexchange.Exchange, error) {
 	certUrl, _ := url.Parse(params.certUrl)
 	validityUrl, _ := url.Parse(params.validityUrl)
-	certs, err := signedexchange.ParseCertificates(params.pemCerts)
-	if err != nil {
-		return nil, err
-	}
-	if certs == nil {
-		return nil, errors.New("invalid certificate")
-	}
-	parsedPrivKey, _ := pem.Decode(params.pemPrivateKey)
-	if parsedPrivKey == nil {
-		return nil, errors.New("invalid private key")
-	}
-	privkey, err := signedexchange.ParsePrivateKey(parsedPrivKey.Bytes)
-	if err != nil {
-		return nil, err
-	}
-	if privkey == nil {
-		return nil, errors.New("invalid private key")
-	}
 	reqHeader := http.Header{}
 	params.resHeader.Add("content-type", params.contentType)
 
@@ -91,7 +70,7 @@ func createExchange(params *exchangeParams) (*signedexchange.Exchange, error) {
 		Certs:       certs,
 		CertUrl:     certUrl,
 		ValidityUrl: validityUrl,
-		PrivKey:     privkey,
+		PrivKey:     prvKey,
 		Rand:        params.rand,
 	}
 	if s == nil {
@@ -138,17 +117,15 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 
 	params := &exchangeParams{
-		ver:           version.Version1b3,
-		contentUrl:    "https://" + demoDomainName + "/hello.html",
-		certUrl:       "https://" + r.Host + certURLPath,
-		validityUrl:   "https://" + demoDomainName + "/cert/null.validity.msg",
-		pemCerts:      certPem,
-		pemPrivateKey: certKey,
-		contentType:   "text/html; charset=utf-8",
-		resHeader:     http.Header{},
-		payload:       []byte(defaultPayload),
-		date:          time.Now().Add(-time.Second * 10),
-		rand:          nil,
+		ver:         version.Version1b3,
+		contentUrl:  "https://" + demoDomainName + "/hello.html",
+		certUrl:     "https://" + r.Host + certURLPath,
+		validityUrl: "https://" + demoDomainName + "/cert/null.validity.msg",
+		contentType: "text/html; charset=utf-8",
+		resHeader:   http.Header{},
+		payload:     []byte(defaultPayload),
+		date:        time.Now().Add(-time.Second * 10),
+		rand:        nil,
 	}
 
 	switch r.URL.Path {

@@ -72,20 +72,15 @@ func getCertMessage(pem []byte) ([]byte, error) {
 	return createCertChainCBOR(certs, ocsp, nil)
 }
 
-func respondWithCertificateMessage(w http.ResponseWriter, r *http.Request, pem []byte) {
-	message, err := getCertMessage(pem)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
+func respondWithCertificateMessage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/cert-chain+cbor")
 	w.Header().Set("Cache-Control", "public, max-age=100")
-	w.Write(message)
+	w.Write(certMessage)
 }
 
 func certHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == certURLPath {
-		respondWithCertificateMessage(w, r, certPem)
+		respondWithCertificateMessage(w, r)
 		return
 	}
 	http.NotFound(w, r)

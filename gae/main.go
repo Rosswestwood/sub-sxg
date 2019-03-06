@@ -1,12 +1,17 @@
 package main
 
 import (
+	"crypto"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/WICG/webpackage/go/signedexchange"
 )
 
 var (
@@ -16,8 +21,10 @@ var (
 	certPemFileName = "cert/cert.pem"
 
 	certURLPath = "/cert/cert.cbor"
-	certKey     []byte
-	certPem     []byte
+
+	prvKey      crypto.PrivateKey
+	certs       []*x509.Certificate
+	certMessage []byte
 
 	amptestnocdn_payload   []byte
 	v0js_payload           []byte
@@ -28,8 +35,14 @@ var (
 )
 
 func init() {
-	certKey, _ = ioutil.ReadFile(certKeyFileName)
-	certPem, _ = ioutil.ReadFile(certPemFileName)
+	certKeyPem, _ := ioutil.ReadFile(certKeyFileName)
+	decodedCertKey, _ := pem.Decode(certKeyPem)
+	prvKey, _ = signedexchange.ParsePrivateKey(decodedCertKey.Bytes)
+
+	certPem, _ := ioutil.ReadFile(certPemFileName)
+	certs, _ = signedexchange.ParseCertificates(certPem)
+	ocsp, _ := getOCSP(certs)
+	certMessage, _ = createCertChainCBOR(certs, ocsp, nil)
 
 	demoDomainName, _ = getSubjectCommonName(certPem)
 
