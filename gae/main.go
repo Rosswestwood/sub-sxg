@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -63,5 +64,27 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	fmt.Fprint(w, "")
+
+	t := template.Must(template.ParseFiles("templates/index.html"))
+
+	type Data struct {
+		Host string
+		SXGs []string
+	}
+	data := Data{
+		Host: r.Host,
+		SXGs: []string{
+			"hello.sxg",
+			"amptestnocdn.sxg",
+			"amptestnocdn_js_preload.sxg",
+			"amptestnocdn_js_img_preload.sxg",
+			"amptestnocdn_js_img_vary_preload.sxg",
+			"amptestnocdn_js_preload_error.sxg",
+			"amptestnocdn_js_img_preload_error.sxg",
+		},
+	}
+
+	if err := t.ExecuteTemplate(w, "index.html", data); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }

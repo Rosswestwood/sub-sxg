@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Subresource Signed Exchange test</title>
+<style>
+  .github-link {
+    font-size: small;
+  }
+</style>
+</head>
+<body>
+  <script>
+  function log(txt) {
+    let disp = document.getElementById('disp');
+    let div = document.createElement('div');
+      div.appendChild(document.createTextNode(txt));
+      disp.appendChild(div);
+  }
+  function addPrefetch(button) {
+    url = button.parentElement.querySelector('a').href;
+    log('-- addPrefetch --');
+    let link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.href = url;
+    document.body.appendChild(link);
+  }
+  if (window.PerformanceObserver) {
+    new PerformanceObserver((list) => {
+      for (let e of list.getEntries()) {
+        if (e.name.indexOf('.sxg') >= 0)
+          log('Prefetched ' + e.name);
+      }
+    }).observe({ entryTypes: ['resource'] });
+  }
+
+  </script>
+  <div class="github-link"><a href="https://github.com/horo-t/sub-sxg">View on GitHub</a></div>
+
+  {{ range .SXGs }}
+    <div class="sxg">
+      <input type="button" onclick="addPrefetch(this)" value="prefetch">
+      <a href="https://{{ $.Host }}/sxg/{{ . }}">{{ . }}</a>
+    </div>
+  {{ end }}
+<div>
+    <a href="https://sxg-demo.horo.jp/amptest/amptestnocdn.html">amptestnocdn.html</a>
+</div>
+<div id="disp"></div>
+</body>
