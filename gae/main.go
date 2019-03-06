@@ -13,18 +13,25 @@ var (
 	certPemFileName = "cert/cert.pem"
 	certKey         []byte
 	certPem         []byte
+
+    amptestnocdn_payload []byte
+    v0js_payload []byte
+    nikko_320_jpg_payload []byte
+    nikko_640_jpg_payload []byte
+    nikko_320_webp_payload []byte
+    nikko_640_webp_payload []byte
 )
 
 func init() {
-	var err error
-	certKey, err = ioutil.ReadFile(certKeyFileName)
-	if err != nil {
-		log.Fatal("Failed to load %s", certKeyFileName)
-	}
-	certPem, err = ioutil.ReadFile(certPemFileName)
-	if err != nil {
-		log.Fatal("Failed to load %s", certPemFileName)
-	}
+	certKey, _ = ioutil.ReadFile(certKeyFileName)
+	certPem, _ = ioutil.ReadFile(certPemFileName)
+    amptestnocdn_payload,_ = ioutil.ReadFile("contents/amptestnocdn.html")
+    v0js_payload,_ = ioutil.ReadFile("contents/v0.js")
+    nikko_320_jpg_payload,_ = ioutil.ReadFile("contents/nikko_320.jpg")
+    nikko_640_jpg_payload,_ = ioutil.ReadFile("contents/nikko_640.jpg")
+    nikko_320_webp_payload,_ = ioutil.ReadFile("contents/nikko_320.webp")
+    nikko_640_webp_payload,_ = ioutil.ReadFile("contents/nikko_640.webp")
+
 	log.Printf("initialized")
 }
 
