@@ -86,6 +86,7 @@ func getHeaderIntegrity(path string, payload []byte, contentType string, host st
 	contentUrl := "https://" + demoDomainName + path
 	reqHeader := http.Header{}
 	resHeader := http.Header{}
+    resHeader.Add("cache-control", "public, max-age=600")
 	resHeader.Add("content-type", contentType)
 
 	e := signedexchange.NewExchange(version.Version1b3, contentUrl, http.MethodGet, reqHeader, 200, resHeader, []byte(payload))
@@ -355,30 +356,35 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 		params.contentUrl = "https://" + demoDomainName + "/amptest/js/v0.js"
 		params.contentType = "text/javascript"
 		params.payload = v0js_payload
+		params.resHeader.Add("cache-control", "public, max-age=600")
 		w.Header().Add("cache-control", "public, max-age=600")
 		serveExchange(params, q, w)
 	case "/sxg/nikko_320_jpg.sxg":
 		params.contentUrl = "https://" + demoDomainName + "/amptest/img/nikko_320.jpg"
 		params.contentType = "image/jpeg"
 		params.payload = nikko_320_jpg_payload
+		params.resHeader.Add("cache-control", "public, max-age=600")
 		w.Header().Add("cache-control", "public, max-age=600")
 		serveExchange(params, q, w)
 	case "/sxg/nikko_320_webp.sxg":
 		params.contentUrl = "https://" + demoDomainName + "/amptest/img/nikko_320.jpg"
 		params.contentType = "image/webp"
 		params.payload = nikko_320_webp_payload
+		params.resHeader.Add("cache-control", "public, max-age=600")
 		w.Header().Add("cache-control", "public, max-age=600")
 		serveExchange(params, q, w)
 	case "/sxg/nikko_640_jpg.sxg":
 		params.contentUrl = "https://" + demoDomainName + "/amptest/img/nikko_640.jpg"
 		params.contentType = "image/jpeg"
 		params.payload = nikko_640_jpg_payload
+		params.resHeader.Add("cache-control", "public, max-age=600")
 		w.Header().Add("cache-control", "public, max-age=600")
 		serveExchange(params, q, w)
 	case "/sxg/nikko_640_webp.sxg":
 		params.contentUrl = "https://" + demoDomainName + "/amptest/img/nikko_640.jpg"
 		params.contentType = "image/webp"
 		params.payload = nikko_640_webp_payload
+		params.resHeader.Add("cache-control", "public, max-age=600")
 		w.Header().Add("cache-control", "public, max-age=600")
 		serveExchange(params, q, w)
 	default:
