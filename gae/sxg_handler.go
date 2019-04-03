@@ -140,7 +140,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add(
 			"link",
 			"<https://"+r.Host+"/sxg/v0.sxg>;"+
-				"rel=\"alternate\";type=\"application/signed-exchange\";"+
+				"rel=\"alternate\";type=\"application/signed-exchange;v=b3\";"+
 				"anchor=\"https://"+demoDomainName+"/amptest/js/v0.js\";")
 		params.resHeader.Add(
 			"link",
@@ -159,7 +159,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add(
 			"link",
 			"<https://"+r.Host+"/sxg/v0.sxg>;"+
-				"rel=\"alternate\";type=\"application/signed-exchange\";"+
+				"rel=\"alternate\";type=\"application/signed-exchange;v=b3\";"+
 				"anchor=\"https://"+demoDomainName+"/amptest/js/v0.js\";")
 		params.resHeader.Add(
 			"link",
@@ -175,12 +175,12 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add(
 			"link",
 			"<https://"+r.Host+"/sxg/nikko_320_jpg.sxg>;"+
-				"rel=\"alternate\";type=\"application/signed-exchange\";"+
+				"rel=\"alternate\";type=\"application/signed-exchange;v=b3\";"+
 				"anchor=\"https://"+demoDomainName+"/amptest/img/nikko_320.jpg\";")
 		w.Header().Add(
 			"link",
 			"<https://"+r.Host+"/sxg/nikko_640_jpg.sxg>;"+
-				"rel=\"alternate\";type=\"application/signed-exchange\";"+
+				"rel=\"alternate\";type=\"application/signed-exchange;v=b3\";"+
 				"anchor=\"https://"+demoDomainName+"/amptest/img/nikko_640.jpg\";")
 		params.resHeader.Add(
 			"link",
@@ -206,7 +206,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add(
 			"link",
 			"<https://"+r.Host+"/sxg/v0.sxg>;"+
-				"rel=\"alternate\";type=\"application/signed-exchange\";"+
+				"rel=\"alternate\";type=\"application/signed-exchange;v=b3\";"+
 				"anchor=\"https://"+demoDomainName+"/amptest/js/v0.js\";")
 		params.resHeader.Add(
 			"link",
@@ -222,58 +222,58 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add(
 			"link",
 			"<https://"+r.Host+"/sxg/nikko_320_jpg.sxg>;"+
-				"rel=\"alternate\";type=\"application/signed-exchange\";"+
-				"variants=\"accept;image/jpeg,image/webp\";"+
-				"variant-key=\"image/jpeg\";"+
+				"rel=\"alternate\";type=\"application/signed-exchange;v=b3\";"+
+				"variants-05=\"accept;image/jpeg,image/webp\";"+
+				"variant-key-05=\"image/jpeg\";"+
 				"anchor=\"https://"+demoDomainName+"/amptest/img/nikko_320.jpg\";")
 		w.Header().Add(
 			"link",
 			"<https://"+r.Host+"/sxg/nikko_320_webp.sxg>;"+
-				"rel=\"alternate\";type=\"application/signed-exchange\";"+
-				"variants=\"accept;image/jpeg,image/webp\";"+
-				"variant-key=\"image/webp\";"+
+				"rel=\"alternate\";type=\"application/signed-exchange;v=b3\";"+
+				"variants-05=\"accept;image/jpeg,image/webp\";"+
+				"variant-key-05=\"image/webp\";"+
 				"anchor=\"https://"+demoDomainName+"/amptest/img/nikko_320.jpg\";")
 		w.Header().Add(
 			"link",
 			"<https://"+r.Host+"/sxg/nikko_640_jpg.sxg>;"+
-				"rel=\"alternate\";type=\"application/signed-exchange\";"+
-				"variants=\"accept;image/jpeg,image/webp\";"+
-				"variant-key=\"image/jpeg\";"+
+				"rel=\"alternate\";type=\"application/signed-exchange;v=b3\";"+
+				"variants-05=\"accept;image/jpeg,image/webp\";"+
+				"variant-key-05=\"image/jpeg\";"+
 				"anchor=\"https://"+demoDomainName+"/amptest/img/nikko_640.jpg\";")
 		w.Header().Add(
 			"link",
 			"<https://"+r.Host+"/sxg/nikko_640_webp.sxg>;"+
-				"rel=\"alternate\";type=\"application/signed-exchange\";"+
-				"variants=\"accept;image/jpeg,image/webp\";"+
-				"variant-key=\"image/webp\";"+
+				"rel=\"alternate\";type=\"application/signed-exchange;v=b3\";"+
+				"variants-05=\"accept;image/jpeg,image/webp\";"+
+				"variant-key-05=\"image/webp\";"+
 				"anchor=\"https://"+demoDomainName+"/amptest/img/nikko_640.jpg\";")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_320.jpg>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"variants=\"accept;image/jpeg,image/webp\";"+
-				"variant-key=\"image/jpeg\";"+
+				"variants-05=\"accept;image/jpeg,image/webp\";"+
+				"variant-key-05=\"image/jpeg\";"+
 				"header-integrity=\""+getHeaderIntegrity("/amptest/img/nikko_320.jpg", nikko_320_jpg_payload, "image/jpeg", r.Host)+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_320.jpg>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"variants=\"accept;image/jpeg,image/webp\";"+
-				"variant-key=\"image/webp\";"+
+				"variants-05=\"accept;image/jpeg,image/webp\";"+
+				"variant-key-05=\"image/webp\";"+
 				"header-integrity=\""+getHeaderIntegrity("/amptest/img/nikko_320.jpg", nikko_320_webp_payload, "image/webp", r.Host)+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_640.jpg>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"variants=\"accept;image/jpeg,image/webp\";"+
-				"variant-key=\"image/jpeg\";"+
+				"variants-05=\"accept;image/jpeg,image/webp\";"+
+				"variant-key-05=\"image/jpeg\";"+
 				"header-integrity=\""+getHeaderIntegrity("/amptest/img/nikko_640.jpg", nikko_640_jpg_payload, "image/jpeg", r.Host)+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_640.jpg>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"variants=\"accept;image/jpeg,image/webp\";"+
-				"variant-key=\"image/webp\";"+
+				"variants-05=\"accept;image/jpeg,image/webp\";"+
+				"variant-key-05=\"image/webp\";"+
 				"header-integrity=\""+getHeaderIntegrity("/amptest/img/nikko_640.jpg", nikko_640_webp_payload, "image/webp", r.Host)+"\"")
 		params.resHeader.Add(
 			"link",
@@ -290,7 +290,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add(
 			"link",
 			"<https://"+r.Host+"/sxg/v0.sxg>;"+
-				"rel=\"alternate\";type=\"application/signed-exchange\";"+
+				"rel=\"alternate\";type=\"application/signed-exchange;v=b3\";"+
 				"anchor=\"https://"+demoDomainName+"/amptest/js/v0.js\";")
 		params.resHeader.Add(
 			"link",
@@ -309,7 +309,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add(
 			"link",
 			"<https://"+r.Host+"/sxg/v0.sxg>;"+
-				"rel=\"alternate\";type=\"application/signed-exchange\";"+
+				"rel=\"alternate\";type=\"application/signed-exchange;v=b3\";"+
 				"anchor=\"https://"+demoDomainName+"/amptest/js/v0.js\";")
 		params.resHeader.Add(
 			"link",
@@ -325,12 +325,12 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add(
 			"link",
 			"<https://"+r.Host+"/sxg/nikko_320_jpg.sxg>;"+
-				"rel=\"alternate\";type=\"application/signed-exchange\";"+
+				"rel=\"alternate\";type=\"application/signed-exchange;v=b3\";"+
 				"anchor=\"https://"+demoDomainName+"/amptest/img/nikko_320.jpg\";")
 		w.Header().Add(
 			"link",
 			"<https://"+r.Host+"/sxg/nikko_640_jpg.sxg>;"+
-				"rel=\"alternate\";type=\"application/signed-exchange\";"+
+				"rel=\"alternate\";type=\"application/signed-exchange;v=b3\";"+
 				"anchor=\"https://"+demoDomainName+"/amptest/img/nikko_640.jpg\";")
 		params.resHeader.Add(
 			"link",
