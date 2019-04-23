@@ -387,6 +387,71 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 		params.resHeader.Add("cache-control", "public, max-age=600")
 		w.Header().Add("cache-control", "public, max-age=600")
 		serveExchange(params, q, w)
+
+
+	case "/sxg/loop.sxg":
+		w.Header().Add(
+			"link",
+			"<https://"+r.Host+"/sxg/a_css.sxg>;"+
+				"rel=\"alternate\";type=\"application/signed-exchange;v=b3\";"+
+				"anchor=\"https://"+demoDomainName+"/amptest/css/a.css\";")
+		params.resHeader.Add(
+			"link",
+			"<https://"+demoDomainName+"/amptest/css/a.css>;"+
+				"rel=\"allowed-alt-sxg\";"+
+				"header-integrity=\""+getHeaderIntegrity("/amptest/css/a.css", []byte(""), "text/css", r.Host)+"\"")
+		params.resHeader.Add(
+			"link",
+			"<https://"+demoDomainName+"/amptest/css/a.css>;"+
+				"rel=\"preload\";"+
+				"as=\"style\"")
+		params.contentUrl = "https://" + demoDomainName + "/amptest/amptestnocdn.html"
+		params.payload = amptestnocdn_payload
+		serveExchange(params, q, w)
+	case "/sxg/a_css.sxg":
+		params.contentUrl = "https://" + demoDomainName + "/amptest/css/a.css"
+		params.contentType = "text/css"
+		params.payload = []byte("")
+		w.Header().Add(
+			"link",
+			"<https://"+r.Host+"/sxg/b_css.sxg>;"+
+				"rel=\"alternate\";type=\"application/signed-exchange;v=b3\";"+
+				"anchor=\"https://"+demoDomainName+"/amptest/css/b.css\";")
+		params.resHeader.Add(
+			"link",
+			"<https://"+demoDomainName+"/amptest/css/b.css>;"+
+				"rel=\"allowed-alt-sxg\";"+
+				"header-integrity=\""+getHeaderIntegrity("/amptest/css/b.css", []byte(""), "text/css", r.Host)+"\"")
+		params.resHeader.Add(
+			"link",
+			"<https://"+demoDomainName+"/amptest/css/b.css>;"+
+				"rel=\"preload\";"+
+				"as=\"style\"")
+		params.resHeader.Add("cache-control", "public, max-age=600")
+		w.Header().Add("cache-control", "public, max-age=600")
+		serveExchange(params, q, w)
+	case "/sxg/b_css.sxg":
+		params.contentUrl = "https://" + demoDomainName + "/amptest/css/b.css"
+		params.contentType = "text/css"
+		params.payload = []byte("")
+		w.Header().Add(
+			"link",
+			"<https://"+r.Host+"/sxg/a_css.sxg>;"+
+				"rel=\"alternate\";type=\"application/signed-exchange;v=b3\";"+
+				"anchor=\"https://"+demoDomainName+"/amptest/css/a.css\";")
+		params.resHeader.Add(
+			"link",
+			"<https://"+demoDomainName+"/amptest/css/a.css>;"+
+				"rel=\"allowed-alt-sxg\";"+
+				"header-integrity=\""+getHeaderIntegrity("/amptest/css/a.css", []byte(""), "text/css", r.Host)+"\"")
+		params.resHeader.Add(
+			"link",
+			"<https://"+demoDomainName+"/amptest/css/a.css>;"+
+				"rel=\"preload\";"+
+				"as=\"style\"")
+		params.resHeader.Add("cache-control", "public, max-age=600")
+		w.Header().Add("cache-control", "public, max-age=600")
+		serveExchange(params, q, w)
 	default:
 		http.Error(w, "signedExchangeHandler", 404)
 	}

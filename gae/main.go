@@ -94,6 +94,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 			"amptestnocdn_js_img_vary_preload.sxg",
 			"amptestnocdn_js_preload_error.sxg",
 			"amptestnocdn_js_img_preload_error.sxg",
+			"loop.sxg",
 		},
 	}
 
