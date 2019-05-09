@@ -26,6 +26,16 @@ var (
 	certs       []*x509.Certificate
 	certMessage []byte
 
+	altDemoDomainName string
+
+	altCertKeyFileName = "cert/alt_cert.key"
+	altCertPemFileName = "cert/alt_cert.pem"
+
+	altCertURLPath = "/cert/alt_cert.cbor"
+	altPrvKey      crypto.PrivateKey
+	altCerts       []*x509.Certificate
+	altCertMessage []byte
+
 	amptestnocdn_payload   []byte
 	v0js_payload           []byte
 	nikko_320_jpg_payload  []byte
@@ -45,6 +55,19 @@ func init() {
 	certMessage, _ = createCertChainCBOR(certs, ocsp, nil)
 
 	demoDomainName, _ = getSubjectCommonName(certPem)
+
+	altCertKeyPem, _ := ioutil.ReadFile(altCertKeyFileName)
+	altDecodedCertKey, _ := pem.Decode(altCertKeyPem)
+	altPrvKey, _ = signedexchange.ParsePrivateKey(altDecodedCertKey.Bytes)
+
+	altCertPem, _ := ioutil.ReadFile(altCertPemFileName)
+	altCerts, _ = signedexchange.ParseCertificates(altCertPem)
+	altOcsp, _ := getOCSP(altCerts)
+	altCertMessage, _ = createCertChainCBOR(altCerts, altOcsp, nil)
+
+	altDemoDomainName, _ = getSubjectCommonName(altCertPem)
+
+
 
 	amptestnocdn_payload, _ = ioutil.ReadFile("contents/amptestnocdn.html")
 	v0js_payload, _ = ioutil.ReadFile("contents/v0.js")

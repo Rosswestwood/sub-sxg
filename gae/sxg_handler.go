@@ -6,7 +6,9 @@ package main
 
 import (
 	"bytes"
+	"crypto"
 	"crypto/sha256"
+	"crypto/x509"
 	"encoding/base64"
 	"errors"
 	"io"
@@ -41,6 +43,8 @@ type exchangeParams struct {
 	payload     []byte
 	date        time.Time
 	rand        io.Reader
+	certs       []*x509.Certificate
+	prvKey      crypto.PrivateKey
 }
 
 type zeroReader struct{}
@@ -67,10 +71,10 @@ func createExchange(params *exchangeParams) (*signedexchange.Exchange, error) {
 	s := &signedexchange.Signer{
 		Date:        params.date,
 		Expires:     params.date.Add(time.Hour * 24),
-		Certs:       certs,
+		Certs:       params.certs,
 		CertUrl:     certUrl,
 		ValidityUrl: validityUrl,
-		PrivKey:     prvKey,
+		PrivKey:     params.prvKey,
 		Rand:        params.rand,
 	}
 	if s == nil {
@@ -86,7 +90,7 @@ func getHeaderIntegrity(path string, payload []byte, contentType string, host st
 	contentUrl := "https://" + demoDomainName + path
 	reqHeader := http.Header{}
 	resHeader := http.Header{}
-    resHeader.Add("cache-control", "public, max-age=600")
+	resHeader.Add("cache-control", "public, max-age=600")
 	resHeader.Add("content-type", contentType)
 
 	e := signedexchange.NewExchange(version.Version1b3, contentUrl, http.MethodGet, reqHeader, 200, resHeader, []byte(payload))
@@ -127,10 +131,19 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 		payload:     []byte(defaultPayload),
 		date:        time.Now().Add(-time.Second * 10),
 		rand:        nil,
+		certs:       certs,
+		prvKey:      prvKey,
 	}
 
 	switch r.URL.Path {
 	case "/sxg/hello.sxg":
+		serveExchange(params, q, w)
+	case "/sxg/alt.sxg":
+		params.certs = altCerts
+		params.prvKey = altPrvKey
+		params.contentUrl = "https://" + altDemoDomainName + "/hello.html"
+		params.certUrl = "https://" + r.Host + altCertURLPath
+		params.validityUrl = "https://" + altDemoDomainName + "/cert/null.validity.msg"
 		serveExchange(params, q, w)
 	case "/sxg/amptestnocdn.sxg":
 		params.contentUrl = "https://" + demoDomainName + "/amptest/amptestnocdn.html"
@@ -387,7 +400,6 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 		params.resHeader.Add("cache-control", "public, max-age=600")
 		w.Header().Add("cache-control", "public, max-age=600")
 		serveExchange(params, q, w)
-
 
 	case "/sxg/loop.sxg":
 		w.Header().Add(
