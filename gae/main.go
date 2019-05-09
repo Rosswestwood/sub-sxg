@@ -125,6 +125,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 			"amptestnocdn_js_img_preload_error.sxg",
 			"loop.sxg",
 			"fonttest.sxg",
+			"cors_fonttest.sxg",
 		},
 	}
 
