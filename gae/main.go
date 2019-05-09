@@ -42,6 +42,9 @@ var (
 	nikko_640_jpg_payload  []byte
 	nikko_320_webp_payload []byte
 	nikko_640_webp_payload []byte
+
+	fonttest_payload []byte
+	wapuro_mincho_payload []byte
 )
 
 func init() {
@@ -75,6 +78,9 @@ func init() {
 	nikko_640_jpg_payload, _ = ioutil.ReadFile("contents/nikko_640.jpg")
 	nikko_320_webp_payload, _ = ioutil.ReadFile("contents/nikko_320.webp")
 	nikko_640_webp_payload, _ = ioutil.ReadFile("contents/nikko_640.webp")
+
+    fonttest_payload, _ = ioutil.ReadFile("contents/fonttest.html")
+    wapuro_mincho_payload, _ = ioutil.ReadFile("contents/wapuro-mincho.woff2")
 
 	log.Printf("demoDomainName: %s", demoDomainName)
 	log.Printf("initialized")
@@ -118,6 +124,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 			"amptestnocdn_js_preload_error.sxg",
 			"amptestnocdn_js_img_preload_error.sxg",
 			"loop.sxg",
+			"fonttest.sxg",
 		},
 	}
 

@@ -86,8 +86,8 @@ func createExchange(params *exchangeParams) (*signedexchange.Exchange, error) {
 	return e, nil
 }
 
-func getHeaderIntegrity(path string, payload []byte, contentType string, host string) string {
-	contentUrl := "https://" + demoDomainName + path
+func getHeaderIntegrity(domainAndPath string, payload []byte, contentType string, host string) string {
+	contentUrl := "https://" + domainAndPath
 	reqHeader := http.Header{}
 	resHeader := http.Header{}
 	resHeader.Add("cache-control", "public, max-age=600")
@@ -145,6 +145,42 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 		params.certUrl = "https://" + r.Host + altCertURLPath
 		params.validityUrl = "https://" + altDemoDomainName + "/cert/null.validity.msg"
 		serveExchange(params, q, w)
+
+	case "/sxg/wapuro-mincho.woff2.sxg":
+		params.certs = altCerts
+		params.prvKey = altPrvKey
+		params.contentUrl = "https://" + altDemoDomainName + "/fonts/wapuro-mincho.woff2"
+		params.certUrl = "https://" + r.Host + altCertURLPath
+		params.validityUrl = "https://" + altDemoDomainName + "/cert/null.validity.msg"
+        params.payload = wapuro_mincho_payload
+        params.contentType = "font/woff2"
+		params.resHeader.Add("cache-control", "public, max-age=600")
+		serveExchange(params, q, w)
+
+	case "/sxg/fonttest.sxg":
+		params.contentUrl = "https://" + demoDomainName + "/amptest/fonttest.html"
+		params.payload = fonttest_payload
+
+		w.Header().Add(
+			"link",
+			"<https://"+r.Host+"/sxg/wapuro-mincho.woff2.sxg>;"+
+				"rel=\"alternate\";type=\"application/signed-exchange;v=b3\";"+
+				"anchor=\"https://"+altDemoDomainName+"/fonts/wapuro-mincho.woff2\";")
+		params.resHeader.Add(
+			"link",
+			"<https://"+altDemoDomainName+"/fonts/wapuro-mincho.woff2>;"+
+				"rel=\"allowed-alt-sxg\";"+
+				"header-integrity=\""+getHeaderIntegrity(altDemoDomainName + "/fonts/wapuro-mincho.woff2", wapuro_mincho_payload, "font/woff2", r.Host)+"\"")
+		params.resHeader.Add(
+			"link",
+			"<https://"+altDemoDomainName+"/fonts/wapuro-mincho.woff2>;"+
+				"rel=\"preload\";"+
+				"as=\"font\";" +
+				"type=\"font/woff2\";"+
+                "crossorigin")
+
+		serveExchange(params, q, w)
+
 	case "/sxg/amptestnocdn.sxg":
 		params.contentUrl = "https://" + demoDomainName + "/amptest/amptestnocdn.html"
 		params.payload = amptestnocdn_payload
@@ -159,7 +195,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+demoDomainName+"/amptest/js/v0.js>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity("/amptest/js/v0.js", v0js_payload, "text/javascript", r.Host)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName + "/amptest/js/v0.js", v0js_payload, "text/javascript", r.Host)+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/js/v0.js>;"+
@@ -178,7 +214,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+demoDomainName+"/amptest/js/v0.js>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity("/amptest/js/v0.js", v0js_payload, "text/javascript", r.Host)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName + "/amptest/js/v0.js", v0js_payload, "text/javascript", r.Host)+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/js/v0.js>;"+
@@ -199,12 +235,12 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_320.jpg>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity("/amptest/img/nikko_320.jpg", nikko_320_jpg_payload, "image/jpeg", r.Host)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName + "/amptest/img/nikko_320.jpg", nikko_320_jpg_payload, "image/jpeg", r.Host)+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_640.jpg>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity("/amptest/img/nikko_640.jpg", nikko_640_jpg_payload, "image/jpeg", r.Host)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName + "/amptest/img/nikko_640.jpg", nikko_640_jpg_payload, "image/jpeg", r.Host)+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_640.jpg>;"+
@@ -225,7 +261,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+demoDomainName+"/amptest/js/v0.js>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity("/amptest/js/v0.js", v0js_payload, "text/javascript", r.Host)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName + "/amptest/js/v0.js", v0js_payload, "text/javascript", r.Host)+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/js/v0.js>;"+
@@ -266,28 +302,28 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 				"rel=\"allowed-alt-sxg\";"+
 				"variants-04=\"accept;image/jpeg,image/webp\";"+
 				"variant-key-04=\"image/jpeg\";"+
-				"header-integrity=\""+getHeaderIntegrity("/amptest/img/nikko_320.jpg", nikko_320_jpg_payload, "image/jpeg", r.Host)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName + "/amptest/img/nikko_320.jpg", nikko_320_jpg_payload, "image/jpeg", r.Host)+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_320.jpg>;"+
 				"rel=\"allowed-alt-sxg\";"+
 				"variants-04=\"accept;image/jpeg,image/webp\";"+
 				"variant-key-04=\"image/webp\";"+
-				"header-integrity=\""+getHeaderIntegrity("/amptest/img/nikko_320.jpg", nikko_320_webp_payload, "image/webp", r.Host)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName + "/amptest/img/nikko_320.jpg", nikko_320_webp_payload, "image/webp", r.Host)+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_640.jpg>;"+
 				"rel=\"allowed-alt-sxg\";"+
 				"variants-04=\"accept;image/jpeg,image/webp\";"+
 				"variant-key-04=\"image/jpeg\";"+
-				"header-integrity=\""+getHeaderIntegrity("/amptest/img/nikko_640.jpg", nikko_640_jpg_payload, "image/jpeg", r.Host)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName + "/amptest/img/nikko_640.jpg", nikko_640_jpg_payload, "image/jpeg", r.Host)+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_640.jpg>;"+
 				"rel=\"allowed-alt-sxg\";"+
 				"variants-04=\"accept;image/jpeg,image/webp\";"+
 				"variant-key-04=\"image/webp\";"+
-				"header-integrity=\""+getHeaderIntegrity("/amptest/img/nikko_640.jpg", nikko_640_webp_payload, "image/webp", r.Host)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName + "/amptest/img/nikko_640.jpg", nikko_640_webp_payload, "image/webp", r.Host)+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_640.jpg>;"+
@@ -309,7 +345,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+demoDomainName+"/amptest/js/v0.js>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity("/amptest/js/v0.js", v0js_payload[1:], "text/javascript", r.Host)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName + "/amptest/js/v0.js", v0js_payload[1:], "text/javascript", r.Host)+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/js/v0.js>;"+
@@ -328,7 +364,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+demoDomainName+"/amptest/js/v0.js>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity("/amptest/js/v0.js", v0js_payload, "text/javascript", r.Host)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName + "/amptest/js/v0.js", v0js_payload, "text/javascript", r.Host)+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/js/v0.js>;"+
@@ -349,12 +385,12 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_320.jpg>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity("/amptest/img/nikko_320.jpg", nikko_320_jpg_payload[1:], "image/jpeg", r.Host)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName + "/amptest/img/nikko_320.jpg", nikko_320_jpg_payload[1:], "image/jpeg", r.Host)+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_640.jpg>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity("/amptest/img/nikko_640.jpg", nikko_640_jpg_payload[1:], "image/jpeg", r.Host)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName + "/amptest/img/nikko_640.jpg", nikko_640_jpg_payload[1:], "image/jpeg", r.Host)+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_640.jpg>;"+
@@ -411,7 +447,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+demoDomainName+"/amptest/css/a.css>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity("/amptest/css/a.css", []byte(""), "text/css", r.Host)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName + "/amptest/css/a.css", []byte(""), "text/css", r.Host)+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/css/a.css>;"+
@@ -433,7 +469,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+demoDomainName+"/amptest/css/b.css>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity("/amptest/css/b.css", []byte(""), "text/css", r.Host)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName + "/amptest/css/b.css", []byte(""), "text/css", r.Host)+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/css/b.css>;"+
@@ -455,7 +491,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+demoDomainName+"/amptest/css/a.css>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity("/amptest/css/a.css", []byte(""), "text/css", r.Host)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName + "/amptest/css/a.css", []byte(""), "text/css", r.Host)+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/css/a.css>;"+
