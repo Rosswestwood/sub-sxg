@@ -14,6 +14,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/WICG/webpackage/go/signedexchange"
@@ -61,6 +62,7 @@ func createExchange(params *exchangeParams) (*signedexchange.Exchange, error) {
 	validityUrl, _ := url.Parse(params.validityUrl)
 	reqHeader := http.Header{}
 	params.resHeader.Add("content-type", params.contentType)
+	params.resHeader.Add("content-length", strconv.Itoa(len(params.payload)))
 
 	e := signedexchange.NewExchange(params.ver, params.contentUrl, http.MethodGet, reqHeader, 200, params.resHeader, []byte(params.payload))
 
@@ -92,9 +94,10 @@ func getHeaderIntegrity(domainAndPath string, payload []byte, contentType string
 	resHeader := http.Header{}
 	resHeader.Add("cache-control", "public, max-age=600")
 	resHeader.Add("content-type", contentType)
-    if cors {
-    	resHeader.Add("Access-Control-Allow-Origin", "*")
-    }
+	if cors {
+		resHeader.Add("Access-Control-Allow-Origin", "*")
+	}
+	resHeader.Add("content-length", strconv.Itoa(len(payload)))
 
 	e := signedexchange.NewExchange(version.Version1b3, contentUrl, http.MethodGet, reqHeader, 200, resHeader, []byte(payload))
 	if err := e.MiEncodePayload(4096); err != nil {
@@ -147,6 +150,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 		params.contentUrl = "https://" + altDemoDomainName + "/hello.html"
 		params.certUrl = "https://" + r.Host + altCertURLPath
 		params.validityUrl = "https://" + altDemoDomainName + "/cert/null.validity.msg"
+		params.resHeader.Add("cache-control", "public, max-age=600")
 		serveExchange(params, q, w)
 
 	case "/sxg/wapuro-mincho.woff2.sxg":
@@ -216,6 +220,27 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 				"as=\"font\";"+
 				"type=\"font/woff2\";"+
 				"crossorigin")
+		serveExchange(params, q, w)
+
+	case "/sxg/corbtest.sxg":
+		params.contentUrl = "https://" + demoDomainName + "/amptest/corb_test.html"
+		params.payload = corbtest_payload
+
+		w.Header().Add(
+			"link",
+			"<https://"+r.Host+"/sxg/alt.sxg>;"+
+				"rel=\"alternate\";type=\"application/signed-exchange;v=b3\";"+
+				"anchor=\"https://"+altDemoDomainName+"/hello.html\";")
+		params.resHeader.Add(
+			"link",
+			"<https://"+altDemoDomainName+"/hello.html>;"+
+				"rel=\"allowed-alt-sxg\";"+
+				"header-integrity=\""+getHeaderIntegrity(altDemoDomainName+"/hello.html", []byte(defaultPayload), "text/html; charset=utf-8", r.Host, false)+"\"")
+		params.resHeader.Add(
+			"link",
+			"<https://"+altDemoDomainName+"/hello.html>;"+
+				"rel=\"preload\";"+
+				"as=\"script\"")
 		serveExchange(params, q, w)
 
 	case "/sxg/amptestnocdn.sxg":

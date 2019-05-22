@@ -43,8 +43,9 @@ var (
 	nikko_320_webp_payload []byte
 	nikko_640_webp_payload []byte
 
-	fonttest_payload []byte
+	fonttest_payload      []byte
 	wapuro_mincho_payload []byte
+	corbtest_payload      []byte
 )
 
 func init() {
@@ -70,8 +71,6 @@ func init() {
 
 	altDemoDomainName, _ = getSubjectCommonName(altCertPem)
 
-
-
 	amptestnocdn_payload, _ = ioutil.ReadFile("contents/amptestnocdn.html")
 	v0js_payload, _ = ioutil.ReadFile("contents/v0.js")
 	nikko_320_jpg_payload, _ = ioutil.ReadFile("contents/nikko_320.jpg")
@@ -79,8 +78,9 @@ func init() {
 	nikko_320_webp_payload, _ = ioutil.ReadFile("contents/nikko_320.webp")
 	nikko_640_webp_payload, _ = ioutil.ReadFile("contents/nikko_640.webp")
 
-    fonttest_payload, _ = ioutil.ReadFile("contents/fonttest.html")
-    wapuro_mincho_payload, _ = ioutil.ReadFile("contents/wapuro-mincho.woff2")
+	fonttest_payload, _ = ioutil.ReadFile("contents/fonttest.html")
+	wapuro_mincho_payload, _ = ioutil.ReadFile("contents/wapuro-mincho.woff2")
+	corbtest_payload, _ = ioutil.ReadFile("contents/corbtest.html")
 
 	log.Printf("demoDomainName: %s", demoDomainName)
 	log.Printf("initialized")
@@ -126,6 +126,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 			"loop.sxg",
 			"fonttest.sxg",
 			"cors_fonttest.sxg",
+			"corbtest.sxg",
 		},
 	}
 
