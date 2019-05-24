@@ -34,6 +34,8 @@ const defaultPayload = `<!DOCTYPE html>
 </html>
 `
 
+const nosniffablePayload = `<!doc`
+
 type exchangeParams struct {
 	ver         version.Version
 	contentUrl  string
@@ -88,15 +90,12 @@ func createExchange(params *exchangeParams) (*signedexchange.Exchange, error) {
 	return e, nil
 }
 
-func getHeaderIntegrity(domainAndPath string, payload []byte, contentType string, host string, cors bool) string {
+func getHeaderIntegrity(domainAndPath string, payload []byte, contentType string, host string, subsxgHeader http.Header) string {
 	contentUrl := "https://" + domainAndPath
 	reqHeader := http.Header{}
-	resHeader := http.Header{}
+	resHeader := subsxgHeader
 	resHeader.Add("cache-control", "public, max-age=600")
 	resHeader.Add("content-type", contentType)
-	if cors {
-		resHeader.Add("Access-Control-Allow-Origin", "*")
-	}
 	resHeader.Add("content-length", strconv.Itoa(len(payload)))
 
 	e := signedexchange.NewExchange(version.Version1b3, contentUrl, http.MethodGet, reqHeader, 200, resHeader, []byte(payload))
@@ -152,6 +151,24 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 		params.validityUrl = "https://" + altDemoDomainName + "/cert/null.validity.msg"
 		params.resHeader.Add("cache-control", "public, max-age=600")
 		serveExchange(params, q, w)
+	case "/sxg/nosniff_alt.sxg":
+		params.certs = altCerts
+		params.prvKey = altPrvKey
+		params.contentUrl = "https://" + altDemoDomainName + "/hello.html"
+		params.certUrl = "https://" + r.Host + altCertURLPath
+		params.validityUrl = "https://" + altDemoDomainName + "/cert/null.validity.msg"
+		params.resHeader.Add("cache-control", "public, max-age=600")
+		params.resHeader.Add("X-Content-Type-Options", "nosniff")
+		serveExchange(params, q, w)
+	case "/sxg/nosniffable_alt.sxg":
+		params.certs = altCerts
+		params.prvKey = altPrvKey
+		params.contentUrl = "https://" + altDemoDomainName + "/hello.html"
+		params.certUrl = "https://" + r.Host + altCertURLPath
+		params.validityUrl = "https://" + altDemoDomainName + "/cert/null.validity.msg"
+		params.payload = []byte(nosniffablePayload)
+		params.resHeader.Add("cache-control", "public, max-age=600")
+		serveExchange(params, q, w)
 
 	case "/sxg/wapuro-mincho.woff2.sxg":
 		params.certs = altCerts
@@ -177,7 +194,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+altDemoDomainName+"/fonts/wapuro-mincho.woff2>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity(altDemoDomainName+"/fonts/wapuro-mincho.woff2", wapuro_mincho_payload, "font/woff2", r.Host, false)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(altDemoDomainName+"/fonts/wapuro-mincho.woff2", wapuro_mincho_payload, "font/woff2", r.Host, http.Header{})+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+altDemoDomainName+"/fonts/wapuro-mincho.woff2>;"+
@@ -202,6 +219,8 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 	case "/sxg/cors_fonttest.sxg":
 		params.contentUrl = "https://" + demoDomainName + "/amptest/fonttest.html"
 		params.payload = fonttest_payload
+		subsxgHeader := http.Header{}
+		subsxgHeader.Add("Access-Control-Allow-Origin", "*")
 
 		w.Header().Add(
 			"link",
@@ -212,7 +231,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+altDemoDomainName+"/fonts/wapuro-mincho.woff2>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity(altDemoDomainName+"/fonts/wapuro-mincho.woff2", wapuro_mincho_payload, "font/woff2", r.Host, true)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(altDemoDomainName+"/fonts/wapuro-mincho.woff2", wapuro_mincho_payload, "font/woff2", r.Host, subsxgHeader)+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+altDemoDomainName+"/fonts/wapuro-mincho.woff2>;"+
@@ -235,7 +254,50 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+altDemoDomainName+"/hello.html>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity(altDemoDomainName+"/hello.html", []byte(defaultPayload), "text/html; charset=utf-8", r.Host, false)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(altDemoDomainName+"/hello.html", []byte(defaultPayload), "text/html; charset=utf-8", r.Host, http.Header{})+"\"")
+		params.resHeader.Add(
+			"link",
+			"<https://"+altDemoDomainName+"/hello.html>;"+
+				"rel=\"preload\";"+
+				"as=\"script\"")
+		serveExchange(params, q, w)
+
+	case "/sxg/nosniff_corbtest.sxg":
+		params.contentUrl = "https://" + demoDomainName + "/amptest/corb_test.html"
+		params.payload = corbtest_payload
+		subsxgHeader := http.Header{}
+		subsxgHeader.Add("X-Content-Type-Options", "nosniff")
+		w.Header().Add(
+			"link",
+			"<https://"+r.Host+"/sxg/nosniff_alt.sxg>;"+
+				"rel=\"alternate\";type=\"application/signed-exchange;v=b3\";"+
+				"anchor=\"https://"+altDemoDomainName+"/hello.html\";")
+		params.resHeader.Add(
+			"link",
+			"<https://"+altDemoDomainName+"/hello.html>;"+
+				"rel=\"allowed-alt-sxg\";"+
+				"header-integrity=\""+getHeaderIntegrity(altDemoDomainName+"/hello.html", []byte(defaultPayload), "text/html; charset=utf-8", r.Host, subsxgHeader)+"\"")
+		params.resHeader.Add(
+			"link",
+			"<https://"+altDemoDomainName+"/hello.html>;"+
+				"rel=\"preload\";"+
+				"as=\"script\"")
+		serveExchange(params, q, w)
+
+	case "/sxg/nosniffable_corbtest.sxg":
+		params.contentUrl = "https://" + demoDomainName + "/amptest/corb_test.html"
+		params.payload = corbtest_payload
+
+		w.Header().Add(
+			"link",
+			"<https://"+r.Host+"/sxg/nosniffable_alt.sxg>;"+
+				"rel=\"alternate\";type=\"application/signed-exchange;v=b3\";"+
+				"anchor=\"https://"+altDemoDomainName+"/hello.html\";")
+		params.resHeader.Add(
+			"link",
+			"<https://"+altDemoDomainName+"/hello.html>;"+
+				"rel=\"allowed-alt-sxg\";"+
+				"header-integrity=\""+getHeaderIntegrity(altDemoDomainName+"/hello.html", []byte(nosniffablePayload), "text/html; charset=utf-8", r.Host, http.Header{})+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+altDemoDomainName+"/hello.html>;"+
@@ -257,7 +319,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+demoDomainName+"/amptest/js/v0.js>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/js/v0.js", v0js_payload, "text/javascript", r.Host, false)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/js/v0.js", v0js_payload, "text/javascript", r.Host, http.Header{})+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/js/v0.js>;"+
@@ -276,7 +338,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+demoDomainName+"/amptest/js/v0.js>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/js/v0.js", v0js_payload, "text/javascript", r.Host, false)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/js/v0.js", v0js_payload, "text/javascript", r.Host, http.Header{})+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/js/v0.js>;"+
@@ -297,12 +359,12 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_320.jpg>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/img/nikko_320.jpg", nikko_320_jpg_payload, "image/jpeg", r.Host, false)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/img/nikko_320.jpg", nikko_320_jpg_payload, "image/jpeg", r.Host, http.Header{})+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_640.jpg>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/img/nikko_640.jpg", nikko_640_jpg_payload, "image/jpeg", r.Host, false)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/img/nikko_640.jpg", nikko_640_jpg_payload, "image/jpeg", r.Host, http.Header{})+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_640.jpg>;"+
@@ -323,7 +385,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+demoDomainName+"/amptest/js/v0.js>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/js/v0.js", v0js_payload, "text/javascript", r.Host, false)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/js/v0.js", v0js_payload, "text/javascript", r.Host, http.Header{})+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/js/v0.js>;"+
@@ -364,28 +426,28 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 				"rel=\"allowed-alt-sxg\";"+
 				"variants-04=\"accept;image/jpeg,image/webp\";"+
 				"variant-key-04=\"image/jpeg\";"+
-				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/img/nikko_320.jpg", nikko_320_jpg_payload, "image/jpeg", r.Host, false)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/img/nikko_320.jpg", nikko_320_jpg_payload, "image/jpeg", r.Host, http.Header{})+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_320.jpg>;"+
 				"rel=\"allowed-alt-sxg\";"+
 				"variants-04=\"accept;image/jpeg,image/webp\";"+
 				"variant-key-04=\"image/webp\";"+
-				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/img/nikko_320.jpg", nikko_320_webp_payload, "image/webp", r.Host, false)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/img/nikko_320.jpg", nikko_320_webp_payload, "image/webp", r.Host, http.Header{})+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_640.jpg>;"+
 				"rel=\"allowed-alt-sxg\";"+
 				"variants-04=\"accept;image/jpeg,image/webp\";"+
 				"variant-key-04=\"image/jpeg\";"+
-				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/img/nikko_640.jpg", nikko_640_jpg_payload, "image/jpeg", r.Host, false)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/img/nikko_640.jpg", nikko_640_jpg_payload, "image/jpeg", r.Host, http.Header{})+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_640.jpg>;"+
 				"rel=\"allowed-alt-sxg\";"+
 				"variants-04=\"accept;image/jpeg,image/webp\";"+
 				"variant-key-04=\"image/webp\";"+
-				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/img/nikko_640.jpg", nikko_640_webp_payload, "image/webp", r.Host, false)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/img/nikko_640.jpg", nikko_640_webp_payload, "image/webp", r.Host, http.Header{})+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_640.jpg>;"+
@@ -407,7 +469,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+demoDomainName+"/amptest/js/v0.js>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/js/v0.js", v0js_payload[1:], "text/javascript", r.Host, false)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/js/v0.js", v0js_payload[1:], "text/javascript", r.Host, http.Header{})+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/js/v0.js>;"+
@@ -426,7 +488,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+demoDomainName+"/amptest/js/v0.js>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/js/v0.js", v0js_payload, "text/javascript", r.Host, false)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/js/v0.js", v0js_payload, "text/javascript", r.Host, http.Header{})+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/js/v0.js>;"+
@@ -447,12 +509,12 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_320.jpg>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/img/nikko_320.jpg", nikko_320_jpg_payload[1:], "image/jpeg", r.Host, false)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/img/nikko_320.jpg", nikko_320_jpg_payload[1:], "image/jpeg", r.Host, http.Header{})+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_640.jpg>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/img/nikko_640.jpg", nikko_640_jpg_payload[1:], "image/jpeg", r.Host, false)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/img/nikko_640.jpg", nikko_640_jpg_payload[1:], "image/jpeg", r.Host, http.Header{})+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/img/nikko_640.jpg>;"+
@@ -509,7 +571,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+demoDomainName+"/amptest/css/a.css>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/css/a.css", []byte(""), "text/css", r.Host, false)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/css/a.css", []byte(""), "text/css", r.Host, http.Header{})+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/css/a.css>;"+
@@ -531,7 +593,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+demoDomainName+"/amptest/css/b.css>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/css/b.css", []byte(""), "text/css", r.Host, false)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/css/b.css", []byte(""), "text/css", r.Host, http.Header{})+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/css/b.css>;"+
@@ -553,7 +615,7 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 			"link",
 			"<https://"+demoDomainName+"/amptest/css/a.css>;"+
 				"rel=\"allowed-alt-sxg\";"+
-				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/css/a.css", []byte(""), "text/css", r.Host, false)+"\"")
+				"header-integrity=\""+getHeaderIntegrity(demoDomainName+"/amptest/css/a.css", []byte(""), "text/css", r.Host, http.Header{})+"\"")
 		params.resHeader.Add(
 			"link",
 			"<https://"+demoDomainName+"/amptest/css/a.css>;"+

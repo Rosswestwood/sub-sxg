@@ -127,6 +127,8 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 			"fonttest.sxg",
 			"cors_fonttest.sxg",
 			"corbtest.sxg",
+			"nosniff_corbtest.sxg",
+			"nosniffable_corbtest.sxg",
 		},
 	}
 
