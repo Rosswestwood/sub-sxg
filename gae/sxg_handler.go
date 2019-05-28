@@ -143,6 +143,12 @@ func signedExchangeHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/sxg/hello.sxg":
 		serveExchange(params, q, w)
+	case "/sxg/hello_certpush.sxg":
+		w.Header().Add("link", "<" + certURLPath + ">;rel=preload;as=fetch")
+		serveExchange(params, q, w)
+	case "/sxg/hello_data_url_cert.sxg":
+		params.certUrl = "data:application/cert-chain+cbor;base64," + base64.StdEncoding.EncodeToString(certMessage)
+		serveExchange(params, q, w)
 	case "/sxg/alt.sxg":
 		params.certs = altCerts
 		params.prvKey = altPrvKey

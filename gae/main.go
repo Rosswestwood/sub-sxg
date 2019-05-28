@@ -117,6 +117,8 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		Host: r.Host,
 		SXGs: []string{
 			"hello.sxg",
+			"hello_certpush.sxg",
+			"hello_data_url_cert.sxg",
 			"amptestnocdn.sxg",
 			"amptestnocdn_js_preload.sxg",
 			"amptestnocdn_js_img_preload.sxg",
